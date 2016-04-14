@@ -3,13 +3,13 @@
     <label :style="{ width: labelWidth != null ? labelWidth + 'px' : '' }" v-show="!hideLabel">{{ labelText }}</label>
     <div class="d-field-content" :style="{ marginLeft: labelWidth != null ? labelWidth + 'px' : '' }">
       <div @click="toggleSelect($event)" class="d-selectfield-box" :class="{ active: selectVisible }" :style="{ width: realEditorWidth ? realEditorWidth : '' }">
-        {{ textValue }}<span class="d-selectfield-trigger d-icon d-icon-arrow-down"></span>
-        <d-select v-ref:select v-if="selectActive" v-show="selectVisible" :value.sync="selectValue" @select="selectVisible = false" @selection-change="handleSelectionChange" @click="$event.stopPropagation()">
-          <d-option v-for="(key, val) in mapping" :value="val" :show-checkbox="multiSelect">{{key}}</d-option>
+        <input class="d-selectfield-box-text" @keydown="handleKeydown" @input="handleInput" v-model="searchText" /><span class="d-selectfield-trigger d-icon d-icon-arrow-down"></span>
+        <d-select v-ref:select v-if="selectActive" v-show="selectVisible" :multi-select="multiSelect" :value.sync="selectValue" @select="selectVisible = false" @selection-change="handleSelectionChange" @click="$event.stopPropagation()">
+          <d-option v-for="(key, val) in mapping" :value="val" :show-checkbox="multiSelect">{{ key }}</d-option>
         </d-select>
       </div>
       <div class="d-field-hint" v-if="!hideHint">
-        <i class='d-icon' :class="{ 'd-icon-error': hintType === 'error', 'd-icon-warning': hintType === 'warning' }"></i>{{ hintMessage || '' }}
+        <i class='d-icon' :class="{ 'd-icon-error': hintType === 'error', 'd-icon-warning': hintType === 'warning' }"></i>{{hintMessage || '' }}
       </div>
     </div>
   </div>
@@ -56,12 +56,24 @@
     right: 0;
     margin-right: 4px;
   }
+
+  .d-selectfield-box-text {
+    display: inline-block;
+    overflow: hidden;
+    width: 100%;
+    line-height: 24px;
+    vertical-align: top;
+    border: none;
+    outline: none;
+  }
 </style>
 
 <script type="text/ecmascript-6">
   import { merge, getPath, setPath } from '../../util';
   import { default as common } from './field-common';
   import { default as Dropdown } from '../../service/dropdown';
+
+  const FUNCTION_KEYS = [13, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40];
 
   export default {
     props: merge({
@@ -73,11 +85,17 @@
       emptyRecord: {
         type: Boolean,
         default: false
+      },
+
+      editable: {
+        type: Boolean,
+        default: false
       }
     }, common.props),
 
     data() {
       return {
+        searchModel: '',
         selectActive: false,
         selectVisible: false
       };
@@ -85,10 +103,10 @@
 
     computed: merge({
       textValue() {
-        var mapping = this.mapping;
-        var selectValue = this.selectValue;
+        const mapping = this.mapping;
+        const selectValue = this.selectValue;
 
-        var reversedMap = {};
+        const reversedMap = {};
 
         for (var label in mapping) {
           if (mapping.hasOwnProperty(label)) {
@@ -107,6 +125,19 @@
           return reversedMap[selectValue];
         }
       },
+
+      searchText: {
+        get() {
+          if (!this.selectVisible) {
+            return this.textValue;
+          }
+          return this.searchModel;
+        },
+        set(newValue) {
+          this.searchModel = newValue;
+        }
+      },
+
       selectValue: {
         get() {
           if (this.model && this.property) {
@@ -149,9 +180,24 @@
         this.selectVisible = false;
       },
 
+      handleKeydown(event) {
+        var keyCode = event.keyCode;
+        if (!this.editable && FUNCTION_KEYS.indexOf(keyCode) === -1) {
+          event.preventDefault();
+        }
+
+        if (keyCode === 27) {
+          this.selectVisible = false;
+        }
+      },
+
+      handleInput() {
+        this.fetchMapping(this.searchModel);
+      },
+
       handleSelectionChange() {
-        var children = this.$refs.select.$children;
-        var value = [];
+        const children = this.$refs.select.$children;
+        const value = [];
 
         children.forEach(function(child) {
           if (child.selected) {

@@ -16,8 +16,8 @@
     },
 
     created() {
-      let columns = this.$options.columns.slice(0);
-      let columnsMap = {};
+      const columns = this.$options.columns.slice(0);
+      const columnsMap = {};
       let hasColumnGroup = false;
 
       columns.forEach((column) => {
@@ -65,7 +65,7 @@
             if (column.isColumnGroup) {
               let childColumns = column.columns;
 
-              rowTemplate += `<th class="${columnId} d-grid-columngroup" colspan="${childColumns.length}"><div>${column.label}</div></th>`;
+              rowTemplate += `<th class="${columnId} d-grid-columngroup" colspan="${childColumns.length}"><div>{{ columnsMap['${columnId}'].label }}</div></th>`;
             } else {
               rowTemplate += `<th ${rowIndex === 0 ? 'rowspan="2"' : ''} @mousemove="handleMouseMove($event, columnsMap['${columnId}'])" @mouseout="handleMouseOut"
                 @mousedown="handleMouseDown($event, columnsMap['${columnId}'])" @click="$parent.handleHeaderClick(columnsMap['${columnId}'], $event)"
@@ -74,7 +74,7 @@
           });
 
           if (rowIndex === 0 && !this.$options.fixed) {
-            rowTemplate += `<th class="gutter" rowspan="2" style="width: ${this.$parent.gutterWidth}px">&nbsp;</th>`;
+            rowTemplate += `<th class="gutter" rowspan="2" :style="{ width: (this.$parent.showVertScrollbar ? this.$parent.gutterWidth : 0) + 'px' }">&nbsp;</th>`;
           }
 
           rowTemplate += '</tr>';
@@ -94,7 +94,7 @@
         });
 
         if (!this.$options.fixed) {
-          rowTemplate += `<th class="gutter" style="width: ${this.$parent.gutterWidth}px">&nbsp;</th>`;
+          rowTemplate += `<th class="gutter" :style="{ width: (this.$parent.showVertScrollbar ? this.$parent.gutterWidth : 0) + 'px' }">&nbsp;</th>`;
         }
 
         this.$options.template = colgroupsTemplate + '<thead><tr>' + rowTemplate + '</tr></thead>';
@@ -107,16 +107,16 @@
     methods: {
       updateColGroup() {
         if (!this.$el) return;
-        let columnsMap = this.columnsMap;
-        let update = function(groupEl) {
+        const columnsMap = this.columnsMap;
+        const update = function(groupEl) {
           let name = groupEl.getAttribute('name');
           let columnConfig = columnsMap[name];
           if (columnConfig && !columnConfig.isColumnGroup) {
             groupEl.setAttribute('width', columnsMap[name].realWidth);
           }
         };
-        let colGroups = [].slice.call(this.$el.querySelectorAll('colgroup'), 0);
-        let cols = [].slice.call(this.$el.querySelectorAll('col'), 0);
+        const colGroups = [].slice.call(this.$el.querySelectorAll('colgroup'), 0);
+        const cols = [].slice.call(this.$el.querySelectorAll('col'), 0);
 
         colGroups.forEach(update);
         cols.forEach(update);
@@ -128,11 +128,11 @@
 
           this.$parent.resizeProxyVisible = true;
 
-          var gridEl = this.$parent.$el;
-          var gridLeft = gridEl.getBoundingClientRect().left;
-          var columnEl = this.$el.querySelector(`th.${column.id}`);
-          var columnRect = columnEl.getBoundingClientRect();
-          var minLeft = columnRect.left - gridLeft + 30;
+          const gridEl = this.$parent.$el;
+          const gridLeft = gridEl.getBoundingClientRect().left;
+          const columnEl = this.$el.querySelector(`th.${column.id}`);
+          const columnRect = columnEl.getBoundingClientRect();
+          const minLeft = columnRect.left - gridLeft + 30;
 
           addClass(columnEl, 'noclick');
 
@@ -143,23 +143,23 @@
             gridLeft: gridLeft
           };
 
-          let resizeProxy = this.$parent.$els.resizeProxy;
+          const resizeProxy = this.$parent.$els.resizeProxy;
           resizeProxy.style.left = this.dragState.startLeft + 'px';
 
           document.onselectstart = function() { return false; };
           document.ondragstart = function() { return false; };
 
-          let mousemove = (event) => {
-            var deltaLeft = event.clientX - this.dragState.startMouseLeft;
-            var proxyLeft = this.dragState.startLeft + deltaLeft;
+          const mousemove = (event) => {
+            const deltaLeft = event.clientX - this.dragState.startMouseLeft;
+            const proxyLeft = this.dragState.startLeft + deltaLeft;
 
             resizeProxy.style.left = Math.max(minLeft, proxyLeft) + 'px';
           };
 
-          let mouseup = () => {
+          const mouseup = () => {
             if (this.dragging) {
-              var finalLeft = parseInt(resizeProxy.style.left, 10);
-              var columnWidth = finalLeft - this.dragState.startColumnLeft;
+              const finalLeft = parseInt(resizeProxy.style.left, 10);
+              const columnWidth = finalLeft - this.dragState.startColumnLeft;
               column.width = column.realWidth = columnWidth;
 
               Vue.nextTick(() => {
@@ -190,7 +190,7 @@
       },
 
       handleMouseMove(event, column) {
-        let target = event.target;
+        const target = event.target;
         if (!column || !column.resizable) return;
 
         if (!this.dragging) {

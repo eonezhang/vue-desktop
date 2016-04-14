@@ -1,5 +1,5 @@
 <template>
-  <d-vbox style="height: 100%;">
+  <!--<d-vbox style="height: 100%;">-->
     <d-form :cols="2">
       <d-text-field label="Condition1"></d-text-field>
       <d-text-field label="Condition2"></d-text-field>
@@ -10,27 +10,31 @@
       </d-field>
     </d-form>
 
-    <d-grid :data="gridData" :fixed-column-count3="3" :schema="gridSchema" :selection.sync="selection" selection-mode="none" @selection-change="handleSelectionChange" flex>
+    <d-grid :data="gridData" :fixed-column-count3="3" :schema="gridSchema"
+        :selection.sync="selection"
+        selection-mode="none"
+        @selection-change="handleSelectionChange"
+        @cell-click="handleCellClick">
       <d-grid-column type="index"></d-grid-column>
       <d-grid-column type="selection"></d-grid-column>
       <d-grid-column property="prop1" :formatter="formatNumber"></d-grid-column>
       <d-grid-column property="prop2">
         <d-grid-column property="prop3"></d-grid-column>
-        <d-grid-column property="prop4"></d-grid-column>
+        <d-grid-column property="prop4" v-if="visible"></d-grid-column>
       </d-grid-column>
       <d-grid-column property="prop3" min-width="600"></d-grid-column>
       <d-grid-column property="prop4"></d-grid-column>
       <d-grid-column label="5" property="prop5"></d-grid-column>
-      <d-grid-column label="操作" width="200" v-if="visible">
+      <d-grid-column label="操作" width="200">
         <d-button>测试1</d-button>
       </d-grid-column>
     </d-grid>
 
     <div>
-      <d-button @click="toggleColumnVisible()">Toggle...</d-button>{{visible}}
+      <d-button @click="toggleColumnVisible()">Toggle...</d-button>
     </div>
 
-  </d-vbox>
+  <!--</d-vbox>-->
 </template>
 
 <script type="text/ecmascript-6">
@@ -63,6 +67,10 @@
 
   export default {
     methods: {
+      changeTitle() {
+        this.title = this.title + 'a';
+      },
+
       toggleColumnVisible() {
         this.visible = !this.visible;
       },
@@ -72,12 +80,17 @@
       },
 
       handleSelectionChange(selection) {
-        console.log('test', this, selection);
+        // console.log('test', this, selection);
+      },
+
+      handleCellClick(row, column) {
+        // console.log(row, column);
       }
     },
     data() {
       return {
-        visible: false,
+        title: 'b',
+        visible: true,
         selection: [],
         gridSchema: gridSchema,
         gridData: gridSchema.format([

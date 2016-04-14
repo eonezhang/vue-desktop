@@ -12,6 +12,7 @@
       property: {},
       width: {},
       minWidth: {},
+      htmlTemplate: {},
       sortable: {
         type: Boolean,
         default: undefined
@@ -117,6 +118,11 @@
         }
       }
 
+      var htmlTemplate = this.htmlTemplate;
+      if (htmlTemplate) {
+        this.template = htmlTemplate;
+      }
+
       let width = this.width;
       let type = this.type;
       let property = this.property;
@@ -166,8 +172,22 @@
         }
       }
 
-      if (this.$parent.$ready) {
-        this.$parent.debouncedReRender();
+      if (this.isChildColumn) {
+        if (this.$parent.$parent.$ready) {
+          this.$parent.$parent.debouncedReRender();
+        }
+      } else {
+        if (this.$parent.$ready) {
+          this.$parent.debouncedReRender();
+        }
+      }
+    },
+
+    watch: {
+      label(newVal) {
+        if (this.columnConfig) {
+          this.columnConfig.label = newVal;
+        }
       }
     },
 
@@ -178,17 +198,22 @@
 
       if (!this.isChildColumn) {
         columnIndex = [].indexOf.call(parent.$els.hiddenColumns.children, this.$el);
-      }
-
-      if (!this.isChildColumn) {
-        parent.columns.splice(columnIndex, 0, columnConfig);
       } else {
-        parent.columns.push(columnConfig);
-        parent.columnConfig.columns = parent.columns;
+        columnIndex = [].indexOf.call(parent.$el.children, this.$el);
       }
 
-      if (parent.$ready) {
-        parent.debouncedReRender();
+      parent.columns.splice(columnIndex, 0, columnConfig);
+
+      if (this.isChildColumn) {
+        parent.columnConfig.columns = parent.columns;
+
+        if (parent.$parent.$ready) {
+          parent.$parent.debouncedReRender();
+        }
+      } else {
+        if (parent.$ready) {
+          parent.debouncedReRender();
+        }
       }
     }
   };
